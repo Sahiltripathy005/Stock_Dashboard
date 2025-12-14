@@ -88,13 +88,15 @@ def get_stock_data(symbol: str, db: Session = Depends(get_db)):
     records = (
         db.query(models.StockData)
         .filter(models.StockData.symbol == symbol.strip().upper())
-        .order_by(models.StockData.date.desc())
-        .limit(30)
+        .order_by(models.StockData.date.asc())   
+        .limit(60)                              
         .all()
     )
 
     if not records:
         return {"error": "Symbol not found"}
+
+    records = records[-30:]
 
     return [
         {
@@ -110,6 +112,7 @@ def get_stock_data(symbol: str, db: Session = Depends(get_db)):
         }
         for r in records
     ]
+
 
 
 @app.get("/summary/{symbol}")

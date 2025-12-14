@@ -26,20 +26,28 @@ def clean_data(df):
 
 
 def add_metrics(df):
-    df["Daily_Return"] = (df["Close"] - df["Open"]) / df["Open"]
+    # Always sort before rolling 
+    df = df.sort_values(["Symbol", "Date"])
 
-    df["MA_7"] = df.groupby("Symbol")["Close"].transform(
-        lambda x: x.rolling(window=7).mean()
+    # Daily Return
+    df["daily_return"] = (df["Close"] - df["Open"]) / df["Open"]
+
+    # 7-day Moving Average
+    df["ma_7"] = df.groupby("Symbol")["Close"].transform(
+        lambda x: x.rolling(window=7, min_periods=7).mean()
     )
 
-    df["High_52W"] = df.groupby("Symbol")["High"].transform("max")
-    df["Low_52W"] = df.groupby("Symbol")["Low"].transform("min")
+    # 52-week High / Low 
+    df["high_52w"] = df.groupby("Symbol")["High"].transform("max")
+    df["low_52w"] = df.groupby("Symbol")["Low"].transform("min")
 
-    df["Volatility"] = df.groupby("Symbol")["Daily_Return"].transform(
-        lambda x: x.rolling(window=30).std()
+    # Volatility = rolling std dev of daily returns (7-day window)
+    df["volatility"] = df.groupby("Symbol")["daily_return"].transform(
+        lambda x: x.rolling(window=7, min_periods=7).std()
     )
 
     return df
+
 
 def main():
     df = pd.read_csv("data/stocks_raw.csv")

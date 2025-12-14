@@ -1,8 +1,8 @@
 import pandas as pd
-from app.database import SessionLocal, engine
+from app.database import SessionLocal, engine, Base
 from app.models import StockData
-from app.database import Base
 
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 def main():
@@ -19,17 +19,17 @@ def main():
             low=row["Low"],
             close=row["Close"],
             volume=row["Volume"],
-            daily_return=row["Daily_Return"],
-            ma_7=row["MA_7"],
-            high_52w=row["High_52W"],
-            low_52w=row["Low_52W"],
-            volatility=row["Volatility"]
+            daily_return=row["daily_return"],
+            ma_7=row["ma_7"],
+            high_52w=row["high_52w"],
+            low_52w=row["low_52w"],
+            volatility=row["volatility"]
         )
         db.add(record)
 
     db.commit()
     db.close()
-    print("Data loaded into database successfully.")
+    print("✅ Data loaded into database successfully.")
 
 if __name__ == "__main__":
     main()
