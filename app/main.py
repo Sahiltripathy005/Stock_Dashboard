@@ -3,6 +3,11 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app import models
 from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+from app.database import SessionLocal, engine
+from app import models
+import os
+
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -17,6 +22,50 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def load_data_on_startup():
+    db = SessionLocal()
+
+    existing = db.query(models.StockData).first()
+    if existing:
+        db.close()
+        print("Database already initialized")
+        return
+
+    print("Initializing database from CSV...")
+
+    csv_path = "data/csv/all_stocks_5yr.csv"
+    if not os.path.exists(csv_path):
+        print("CSV not found, skipping initialization")
+        db.close()
+        return
+
+    df = pd.read_csv(csv_path)
+
+    df.columns = [c.capitalize() for c in df.columns]
+    df.rename(columns={"Name": "Symbol"}, inplace=True)
+
+    symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "META"]
+    df = df[df["Symbol"].isin(symbols)]
+
+    df["Date"] = pd.to_datetime(df["Date"])
+
+    for _, row in df.iterrows():
+        record = models.StockData(
+            symbol=row["Symbol"],
+            date=row["Date"].date(),
+            open=row["Open"],
+            high=row["High"],
+            low=row["Low"],
+            close=row["Close"],
+            volume=row["Volume"]
+        )
+        db.add(record)
+
+    db.commit()
+    db.close()
+    print("Database initialized successfully")
 
 
 def get_db():
