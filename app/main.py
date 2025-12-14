@@ -7,10 +7,51 @@ import pandas as pd
 from app.database import SessionLocal, engine
 from app import models
 import os
+from sqlalchemy.orm import Session
+import pandas as pd
+from app.database import SessionLocal
+from app.models import StockData
+
+def load_data_if_empty():
+    db: Session = SessionLocal()
+    try:
+        exists = db.query(StockData).first()
+        if exists:
+            return  # already populated
+
+        df = pd.read_csv("data/stocks_processed.csv")
+
+        for _, row in df.iterrows():
+            record = StockData(
+                symbol=row["Symbol"],
+                date=pd.to_datetime(row["Date"]).date(),
+                open=row["Open"],
+                high=row["High"],
+                low=row["Low"],
+                close=row["Close"],
+                volume=row["Volume"],
+                daily_return=row["daily_return"],
+                ma_7=row["ma_7"],
+                high_52w=row["high_52w"],
+                low_52w=row["low_52w"],
+                volatility=row["volatility"],
+            )
+            db.add(record)
+
+        db.commit()
+        print("Database populated on startup")
+
+    finally:
+        db.close()
 
 
 
 app = FastAPI(title="Stock Data Intelligence API")
+
+@app.on_event("startup")
+def startup_event():
+    load_data_if_empty()
+
 models.Base.metadata.create_all(bind=engine)
 
 
