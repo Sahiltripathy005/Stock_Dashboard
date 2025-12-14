@@ -9,11 +9,10 @@ from app import models
 import os
 
 
+
+app = FastAPI(title="Stock Data Intelligence API")
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Stock Data Intelligence API")
-
-app = FastAPI(title="Stock Data Intelligence API")
 
 app.add_middleware(
     CORSMiddleware,
