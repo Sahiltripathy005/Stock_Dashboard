@@ -1,4 +1,4 @@
-const API_BASE = "https://stock-dashboard-api.onrender.com";
+const API_BASE = "https://stock-dashboard-kkpr.onrender.com";
 
 let chart = null;
 
