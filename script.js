@@ -1,5 +1,5 @@
 const API_BASE = "https://stock-dashboard-kkpr.onrender.com";
-
+let activeRangeBtn = null;
 let chart = null;
 let currentSymbol = null;
 
@@ -10,13 +10,20 @@ fetch(`${API_BASE}/companies`)
     populateCompareDropdowns(companies);
 
     const list = document.getElementById("company-list");
-    companies.forEach(symbol => {
+
+    companies.forEach((symbol, idx) => {
       const btn = document.createElement("button");
       btn.textContent = symbol;
       btn.className =
         "w-full text-left px-4 py-2 rounded-lg hover:bg-indigo-100";
-      btn.onclick = () => loadStock(symbol);
+
+      btn.onclick = () => loadStock(symbol, 30);
       list.appendChild(btn);
+
+      // AUTO LOAD FIRST STOCK
+      if (idx === 0) {
+        loadStock(symbol, 30);
+      }
     });
   });
 
@@ -76,8 +83,15 @@ function loadStock(symbol, days = 30) {
           }
         }
       });
+
+      // ✅ Enable range buttons AFTER data loads
+      document.querySelectorAll(".range-btn").forEach(b => {
+        b.disabled = false;
+        b.classList.remove("opacity-50");
+      });
     });
 }
+
 
 function compareStocks() {
   const s1 = document.getElementById("compare1").value;
@@ -156,4 +170,13 @@ function populateCompareDropdowns(companies) {
     c1.innerHTML += `<option value="${s}">${s}</option>`;
     c2.innerHTML += `<option value="${s}">${s}</option>`;
   });
+}
+
+function setRange(btn, days) {
+  document.querySelectorAll(".range-btn").forEach(b =>
+    b.classList.remove("bg-indigo-600", "text-white")
+  );
+
+  btn.classList.add("bg-indigo-600", "text-white");
+  reload(days);
 }

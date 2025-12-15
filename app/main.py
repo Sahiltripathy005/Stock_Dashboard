@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import Query
+from fastapi import FastAPI, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app import models
@@ -125,19 +126,23 @@ def get_companies(db: Session = Depends(get_db)):
     return [row[0] for row in result]
 
 @app.get("/data/{symbol}")
-def get_stock_data(symbol: str, db: Session = Depends(get_db)):
+def get_stock_data(
+    symbol: str,
+    days: int = Query(30, ge=1, le=365),
+    db: Session = Depends(get_db)
+):
     records = (
         db.query(models.StockData)
         .filter(models.StockData.symbol == symbol.strip().upper())
-        .order_by(models.StockData.date.asc())   
-        .limit(60)                              
+        .order_by(models.StockData.date.desc())
+        .limit(days)
         .all()
     )
 
     if not records:
-        return {"error": "Symbol not found"}
+        return []
 
-    records = records[-30:]
+    records = records[::-1]  # oldest → newest
 
     return [
         {
@@ -237,3 +242,10 @@ def db_summary(db: Session = Depends(get_db)):
         }
         for r in rows
     ]
+
+@app.post("/admin/reset-db")
+def reset_db(db: Session = Depends(get_db)):
+    db.query(models.StockData).delete()
+    db.commit()
+    load_data_if_empty()
+    return {"status": "database reset and reloaded"}

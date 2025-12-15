@@ -68,19 +68,16 @@
       </div>
     </div>
 
-    <!-- Compare Section (BOTTOM) -->
-
-
-
     <!-- Filters -->
-    <div class="flex gap-3 mb-4">
-      <button onclick="reload(30)" class="px-3 py-1 border rounded">
-        Last 30 Days
-      </button>
-      <button onclick="reload(90)" class="px-3 py-1 border rounded">
-        Last 90 Days
-      </button>
-    </div>
+<button disabled onclick="setRange(this, 30)" class="range-btn px-3 py-1 border rounded opacity-50">
+  Last 30 Days
+</button>
+
+<button disabled onclick="setRange(this, 90)" class="range-btn px-3 py-1 border rounded opacity-50">
+  Last 90 Days
+</button>
+
+
 
     <!-- Chart -->
     <div class="bg-white rounded-xl shadow p-6">
@@ -94,7 +91,11 @@
   id="compare-modal"
   class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
 >
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl relative p-6">
+  <!-- Background click layer -->
+  <div class="absolute inset-0" onclick="closeCompareModal()"></div>
+
+  <!-- Modal content -->
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl relative p-6 z-10">
 
     <!-- Close Button -->
     <button
